@@ -44,12 +44,30 @@ class RNNCell:
 
             return h, y
         
-        def backward(self, gradient_next, gradient_out, lr=0.01):
+        def backward(self, dh_next, dy, lr=0.01):
             """
             Backward Pass computes gradients and updates weights
 
             Args:
-                gradient_next: Gradient from next step
-                gradient_output: Gradient of output loss
+                dh_next: Gradient from next step
+                dy: Gradient of output loss
             """
-            ...
+            dV = np.dot(dy, self.h.T)
+            dc = dy
+
+            dh = np.dot(self.V.T, dy) + dh_next
+            da = dh * (1 - self.h ** 2) 
+
+            dU = np.dot(da, self.x.T)
+            dW = np.dot(da, self.h_prev.T)
+            db = da
+
+            dh_prev = np.dot(self.W.T, da)
+
+            self.U -= lr * dU
+            self.W -= lr * dW
+            self.V -= lr * dV
+            self.b -= lr * db
+            self.c -= lr * dc
+
+            return dh_prev
