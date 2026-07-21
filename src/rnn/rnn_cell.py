@@ -19,4 +19,23 @@ class RNNCell:
         self.b = np.zeros((hidden_size, 1))
         self.c = np.zeros((output_size, 1))
 
-        
+        def forward(self, x, h_prev):
+            """
+            Forward Pass of a single RNN step
+
+            Args:
+                x: Input of the current timestamp (input_size, 1)
+                h_prev: previous hidden state (hidden_size, 1)
+
+            Returns:
+                h: Current hidden state
+                y: Current output
+            """
+
+            self.a = self.b + np.dot(self.W, h_prev) + np.dot(self.U, x)
+            h = np.tanh(self.a)
+
+            y = self.c + np.dot(self.V, h)
+            y = torch.softmax(y)
+
+            return h, y
