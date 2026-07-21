@@ -12,12 +12,16 @@ class RNNCell:
             output_size: Dimension of output.
         """
 
-        self.U = np.random(hidden_size, input_size) * 0.01
-        self.W = np.random(hidden_size, hidden_size) * 0.01
-        self.V = np.random(hidden_size, output_size) * 0.01
+        self.U = np.random.randn(hidden_size, input_size) * 0.01
+        self.W = np.random.randn(hidden_size, hidden_size) * 0.01
+        self.V = np.random.randn(hidden_size, output_size) * 0.01
 
         self.b = np.zeros((hidden_size, 1))
         self.c = np.zeros((output_size, 1))
+
+        def softmax(self, x):
+            e = np.exp(x - np.max(x))
+            return e / np.sum(e)
 
         def forward(self, x, h_prev):
             """
@@ -36,6 +40,16 @@ class RNNCell:
             h = np.tanh(self.a)
 
             y = self.c + np.dot(self.V, h)
-            y = torch.softmax(y)
+            y = self.softmax(y)
 
             return h, y
+        
+        def backward(self, gradient_next, gradient_out, lr=0.01):
+            """
+            Backward Pass computes gradients and updates weights
+
+            Args:
+                gradient_next: Gradient from next step
+                gradient_output: Gradient of output loss
+            """
+            ...
