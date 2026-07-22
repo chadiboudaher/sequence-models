@@ -31,12 +31,38 @@ class RNNCell:
             h: Updated hidden state passed to the next time step.
             y: Output vector generated at the current time step.
         """
+        self.x = x
+        self.h_prev = h_prev
+
         self.h_raw = np.dot(self.Wxh, x) + np.dot(self.Whh, h_prev) + self.bh
-        h = np.tanh(self.h_raw)
+        self.h = np.tanh(self.h_raw)
 
-        y = np.dot(self.Woh, h) + self.bo
+        self.y = np.dot(self.Woh, self.h) + self.bo
 
-        return h, y
+        return self.h, self.y
+    
+    def backward(self, dy,lr=0.01):
+        """
+        Backpropagation for a single cell
 
-        
-        
+        Args:
+        dy: gradient for loss function
+        lr: learning rate used
+        """
+        dWoh = np.dot(dy, self.h.T)
+        dbo = dy
+
+        dh = np.dot(self.Woh.T, dy)
+
+        dh_raw = dh * (1 - self.h ** 2)
+
+        dWxh = np.dot(dh_raw, self.x.T)
+        dWhh = np.dot(dh_raw, self.h_prev.T)
+        dbh = dh_raw
+
+        self.Woh -= lr * dWoh
+        self.bo -= lr * dbo
+
+        self.Wxh -= lr * dWxh
+        self.Whh -= lr * dWhh
+        self.bh -= lr * dbh
