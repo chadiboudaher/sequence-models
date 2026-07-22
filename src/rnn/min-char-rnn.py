@@ -47,3 +47,30 @@ def lossFun(inputs, targets, hprev):
         ys[t] = np.dot(Why, hs[t]) + by
         ps[t] = np.exp(ys[t]) / np.sum(np.exp(ys[t]))
         loss += -np.log(ps[t][targets[t], 0])
+
+    # Backward Pass
+    dWxh, dWhh, dWhy = np.zeros_like(Wxh), 
+    np.zeros_like(Whh), 
+    np.zeros_like(Why)
+
+    dbh, dby = np.zeros_like(bh), np.zeros_like(by)
+
+    dhnext = np.zeros_like(hs[0])
+
+    for t in reversed(range(len(inputs))):
+        dy = np.copy(ps[t])
+        dy[targets[t]] -= 1
+        dWhy += np.dot(dy, hs[t].T)
+        dby += dy
+
+        dh = np.dot(Why.T, dy)
+        dhraw = (1 - hs[t] * hs[t]) * dh
+        dbh += dhraw
+
+        dWxh += np.dot(dhraw, xs[t].T)
+        dWhh += np.dot(dhraw, hs[t-1].T)
+        dhnext = np.dot(Whh.T, dhraw)
+
+    for dparam in [dWxh, dWhh, dWhy, dbh, dby]:
+        np.clip(dparam, -5, 5, out=dparam)
+    return loss, dWxh, dWhh, dWhy, dbh, dby, hs[len(inputs)-1]
