@@ -74,3 +74,23 @@ def lossFun(inputs, targets, hprev):
     for dparam in [dWxh, dWhh, dWhy, dbh, dby]:
         np.clip(dparam, -5, 5, out=dparam)
     return loss, dWxh, dWhh, dWhy, dbh, dby, hs[len(inputs)-1]
+
+def sample(h, seed_ix, n):
+    """
+    sample a sequence of integers from the model
+    h is memory state, seed_ix is seed letter for first time step
+    """
+
+    x = np.zeros((vocab_size, 1))
+    x[seed_ix] = 1
+    ixes = []
+
+    for t in range(n):
+        h = np.tanh(np.dot(Wxh, x) + np.dot(Whh, h) + bh)
+        y = np.dot(Why, h) + by
+        p = np.exp(y) / np.sum(np.exp(y))
+        ix = np.random.choice(range(vocab_size), p=p.ravel())
+        x = np.zeros((vocab_size, 1))
+        x[ix] = 1
+        ixes.append(ix)
+    return ixes
