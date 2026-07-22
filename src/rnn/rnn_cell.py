@@ -66,3 +66,5 @@ class RNNCell:
         self.Wxh -= lr * dWxh
         self.Whh -= lr * dWhh
         self.bh -= lr * dbh
+
+        return dh, dWhh, dWxh, dWoh
