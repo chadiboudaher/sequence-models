@@ -20,6 +20,17 @@ class RNNCell:
         self.bo = np.zeros((output_size, 1))
 
     def forward(self, x, h_prev):
+        """
+        Initialise Forward Pass
+
+        Args: 
+            x: input at time stamp
+            h_prev: Hidden state from previous time step
+
+        Returns:
+            h: Updated hidden state passed to the next time step.
+            y: Output vector generated at the current time step.
+        """
         self.h_raw = np.dot(self.Wxh, x) + np.dot(self.Whh, h_prev) + self.bh
         h = np.tanh(self.h_raw)
 
