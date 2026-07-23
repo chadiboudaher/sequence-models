@@ -9,6 +9,7 @@ chars = list(set(data))
 data_size, vocab_size = len(data), len(chars)
 
 print(f"data has {data_size} characters, {vocab_size} unique.")
+print(f"Unique chars are: {chars}")
 
 # Convert to integer before feeding it into a NN
 char_to_ix = { ch:i for i, ch in enumerate(chars)}
@@ -49,9 +50,9 @@ def lossFun(inputs, targets, hprev):
         loss += -np.log(ps[t][targets[t], 0])
 
     # Backward Pass
-    dWxh, dWhh, dWhy = np.zeros_like(Wxh), 
-    np.zeros_like(Whh), 
-    np.zeros_like(Why)
+    dWxh, dWhh, dWhy = (np.zeros_like(Wxh), 
+                        np.zeros_like(Whh), 
+                        np.zeros_like(Why))
 
     dbh, dby = np.zeros_like(bh), np.zeros_like(by)
 
@@ -94,3 +95,37 @@ def sample(h, seed_ix, n):
         x[ix] = 1
         ixes.append(ix)
     return ixes
+
+n, p = 0, 0
+mWxh, mWhh, mWhy = (np.zeros_like(Wxh),
+                    np.zeros_like(Whh),
+                    np.zeros_like(Why))
+mbh, mby = np.zeros_like(bh), np.zeros_like(by)
+
+smooth_loss = -np.log(1.0 / vocab_size) * seq_length
+
+while True:
+    if p + seq_length + 1 >= len(data) or n == 0:
+        hprev = np.zeros((hidden_size, 1))
+        p = 0
+    inputs = [char_to_ix[ch] for ch in data[p:p + seq_length]]
+    targets = [char_to_ix[ch] for ch in data[p+1 : p+seq_length+1]]
+
+    if n % 100 == 0:
+        sample_ix = sample(hprev, inputs[0], 200)
+        txt = ''.join(ix_to_char[ix] for ix in sample_ix)
+        print('----\n %s \n----' % (txt,))
+
+    loss, dWxh, dWhh, dWhy, dbh, dby, hprev = lossFun(inputs, targets, hprev)
+    smooth_loss = smooth_loss * 0.999 + loss * 0.001
+    if n % 100 == 0: print('iter %d, loss: %f' % (n, smooth_loss))  # print progress
+
+    # perform parameter update with Adagrad
+    for param, dparam, mem in zip([Wxh, Whh, Why, bh, by],
+                                  [dWxh, dWhh, dWhy, dbh, dby],
+                                  [mWxh, mWhh, mWhy, mbh, mby]):
+        mem += dparam * dparam
+        param += -learning_rate * dparam / np.sqrt(mem + 1e-8)  # adagrad update
+
+    p += seq_length  # move data pointer
+    n += 1  # iteration counter
